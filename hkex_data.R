@@ -11,5 +11,5 @@ con <- psql_con()
 # Loadd all codes in equities
 for (code in equities$code) {
   msg <- load_stock(con, code)
-  cat(sprintf("%s for %s", msg, code))
+  cat(sprintf("%s for %s\n", msg, code))
 }
