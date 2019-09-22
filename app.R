@@ -2,11 +2,6 @@ library(shiny)
 library(DT)
 source("utils.R")
 
-con <- psql_con()
-codes <- dbGetQuery(con, "select distinct code from stock order by code")
-codes <- codes$code
-dbDisconnect(con)
-
 ## app.R ##
 server <- function(input, output, session) {
   con <- psql_con()
@@ -14,8 +9,15 @@ server <- function(input, output, session) {
     dbDisconnect(con)
   })
   
+  output$sel <- renderUI({
+    codes <- dbGetQuery(con, "select distinct code from stock order by code")
+    codes <- codes$code
+    selectInput("code", "Stock Code", codes)
+  })
+  
   output$stock <- DT::renderDT({
     code <- input$code
+    req(!is.null(code))
     d <- dbGetQuery(con, sprintf(
       "select * from stock where code = '%s'",  code
     ))
@@ -33,7 +35,7 @@ server <- function(input, output, session) {
 }
 
 ui <- fluidPage(
-  selectInput("code", "Stock Code", codes),
+  uiOutput("sel"),
   DT::dataTableOutput("stock"),
   title = "Hong Kong Exchange Stock Data"
 )
