@@ -122,6 +122,18 @@ reload_stock <- function(con, code) {
   dbWriteTable(con, "stock", data, row.names = FALSE, append = TRUE)
 }
 
+# Load codes-------------------------------------------------------------------
+loade_codes <- function(con) {
+  equities <- try(get_equities())
+  if (inherits(equities, 'try-error')) {
+    equities <- dbGetQuery(con, "select * from stock_code;")
+  } else {
+    dbWriteTable(con, "stock_code", equities, row.names = FALSE,
+                 overwrite = TRUE)
+  }
+  equities
+}
+  
 # Retrieve and load data to database-------------------------------------------
 load_stock <- function(con, code) {
   # check existing records

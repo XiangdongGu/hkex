@@ -4,11 +4,10 @@ library(rvest)
 library(RPostgreSQL)
 source("utils.R")
 
-equities <- get_equities()
-
 con <- psql_con()
 
-codes <- equities$code
+# Load stock code
+codes <- loade_codes(con)
 codes <- codes[order(runif(length(codes)))]
 
 # Loadd all codes in equities
@@ -20,3 +19,4 @@ for (code in codes) {
   }
   cat(sprintf("%s for %s\n", msg, code))
 }
+
