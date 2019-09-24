@@ -174,3 +174,76 @@ load_stock <- function(con, code) {
   return(sprintf("Loaded new %s records", nrow(data)))
 }
 
+# Compute RSI trading signal---------------------------------------------------
+data <- dbGetQuery(con, "select code, date, adj_close from stock 
+                   order by date")
+
+# RSI metric
+compute_rsi <- function(x) {
+  if (length(x) < 14) return(rep(NA, length(x)))
+  change <- diff(x)
+  gain <- change * (change > 0)
+  loss <- -change * (change < 0)
+  get_avg <- function(v) {
+    avg_v <- rep(0, length(v) - 13)
+    avg_v[1] <- mean(v[1:14])
+    for (i in 2:length(avg_v)) {
+      avg_v[i] <- (avg_v[i-1]*13 + v[i+13])/14
+    }
+    avg_v
+  }
+  avg_gain <- get_avg(gain)
+  avg_loss <- get_avg(loss)
+  rs <- avg_gain / avg_loss
+  rsi <- 100 - 100 / (1 + rs)
+  rsi <- c(rep(NA, 14), rsi)
+  rsi
+}
+
+# RSI trade signal
+rsi_trade <- function(rsi) {
+  sig <- (rsi > 70) - (rsi < 30)
+  sig1 <- sig[-length(sig)] #previous
+  sig2 <- sig[-1] # current
+  trade <- ((sig2 > -1) & (sig1 == -1)) - ((sig2 < 1) & (sig1 == 1))
+  trade <- c(NA, trade)
+  trade
+}
+
+# MACD
+compute_macd <- function(x) {
+  if (length(x) < 26) return(rep(NA, length(x)))
+  get_ema <- function(l) {
+    ema <- rep(NA, length(x))
+    ema[l] <- mean(x[1:l])
+    for (i in (l + seq_along(ema[-(1:l)]))) {
+      ema[i] <- x[i]*2/(l+1) + ema[i-1]*(1-2/(l+1))
+    }
+    ema
+  }
+  ema12 <- get_ema(12)
+  ema26 <- get_ema(26)
+  macd <- ema12 - ema26
+  macd
+}
+
+# MACD signal
+macd_signal <- function(macd, period) {
+  if (length(macd) < 25 + period) return(rep(NA, length(macd)))
+  sig <- rep(NA, length(macd))
+  sig[25+period] <- mean(macd[26:(25+period)])
+  if (length(sig) == 25+period) return(sig)
+  for (i in (26+period):length(sig)) {
+    sig[i] <- macd[i]*2/(period+1) + sig[i-1]*(1-2/(period+1))
+  }
+  sig
+}
+
+# MACD trade
+macd_trade <- function(macd, signal) {
+  macd1 <- macd[-1] # current
+  macd2 <- macd[-length(macd)] # lag1
+  sig1 <- signal[-1]
+  sig2 <- signal[-length(signal)]
+  ((macd1 > sig1) & (macd2 <= sig2)) - ((macd1 < sig1) & (macd2 >= sig2))
+}
