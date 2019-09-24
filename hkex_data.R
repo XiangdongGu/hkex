@@ -8,6 +8,7 @@ con <- psql_con()
 
 # Load stock code
 codes <- loade_codes(con)
+codes <- codes$code
 codes <- codes[order(runif(length(codes)))]
 
 # Loadd all codes in equities
