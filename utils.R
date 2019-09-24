@@ -2,6 +2,7 @@ library(tidyverse)
 library(readxl)
 library(rvest)
 library(RPostgreSQL)
+Sys.setenv(TZ = "Asia/Hong_Kong")
 
 # Get all equities-------------------------------------------------------------
 get_equities <- function() {
