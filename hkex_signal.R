@@ -18,4 +18,10 @@ data_sig <- data %>%
     trade_macd = macd_trade(macd, macd_sig)
   )
 
-dbWriteTable(con, "signal", data_sig, row.names = FALSE, overwrite = TRUE)
+data_sig <- data_sig %>% select(-adj_close)
+
+dbSendQuery(con, "drop table if exists signal")
+for (cd in unique(data_sig$code)) {
+  d <- data_sig %>% filter(code == cd)
+  dbWriteTable(con, "signal", d, row.names = FALSE, append = TRUE)
+}
