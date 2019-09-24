@@ -175,8 +175,6 @@ load_stock <- function(con, code) {
 }
 
 # Compute RSI trading signal---------------------------------------------------
-data <- dbGetQuery(con, "select code, date, adj_close from stock 
-                   order by date")
 
 # RSI metric
 compute_rsi <- function(x) {
@@ -245,5 +243,6 @@ macd_trade <- function(macd, signal) {
   macd2 <- macd[-length(macd)] # lag1
   sig1 <- signal[-1]
   sig2 <- signal[-length(signal)]
-  ((macd1 > sig1) & (macd2 <= sig2)) - ((macd1 < sig1) & (macd2 >= sig2))
+  s <- ((macd1 > sig1) & (macd2 <= sig2)) - ((macd1 < sig1) & (macd2 >= sig2))
+  c(NA, s)
 }
