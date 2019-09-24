@@ -7,7 +7,7 @@ con <- psql_con()
 data <- dbGetQuery(con, "select code, date, adj_close from stock
                    order by code, date")
 
-data_sig <- data %>% 
+data <- data %>% 
   arrange(code, date) %>%
   group_by(code) %>%
   mutate(
@@ -18,10 +18,10 @@ data_sig <- data %>%
     trade_macd = macd_trade(macd, macd_sig)
   )
 
-data_sig <- data_sig %>% select(-adj_close)
+data <- data %>% select(-adj_close)
 
 dbSendQuery(con, "drop table if exists signal")
-for (cd in unique(data_sig$code)) {
-  d <- data_sig %>% filter(code == cd)
+for (cd in unique(data$code)) {
+  d <- data %>% filter(code == cd)
   dbWriteTable(con, "signal", d, row.names = FALSE, append = TRUE)
 }
