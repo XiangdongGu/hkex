@@ -11,6 +11,7 @@ for (code in codes) {
   data <- dbGetQuery(con, sprintf(
     "select code, date, adj_close from stock where code = '%s'
     order by code, date ", code))
+  if (nrow(data) < 35) next()
   data <- data %>% 
     arrange(code, date) %>%
     group_by(code) %>%
@@ -26,13 +27,4 @@ for (code in codes) {
     "delete from signal where code = '%s'", code
   ))
   dbWriteTable(con, "signal", data, row.names = FALSE, append = TRUE)
-}
-
-
-
-
-# dbSendQuery(con, "drop table if exists signal")
-for (cd in unique(data$code)) {
-  d <- data %>% filter(code == cd)
-  dbWriteTable(con, "signal", d, row.names = FALSE, append = TRUE)
 }
