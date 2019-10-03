@@ -7,4 +7,4 @@ with recursive test_ema(code, date, rn, adj_close, ema12, ema26) as (
     a.adj_close*2/27 + b.ema26 * 25/27 as ema26
     from test a inner join test_ema b on a.rn = b.rn + 1 and a.code = b.code
 )
-select *, ema12-ema26 as macd from test_ema order by code limit 100;
+create table signal_test as (select *, ema12-ema26 as macd from test_ema order by code, date);
