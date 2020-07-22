@@ -25,40 +25,24 @@ def date_to_int(date):
     dif = (date - org_date).days
     return org + intv * dif
 
-def make_request(stock, start = "", end = ""):
-    base = "https://finance.yahoo.com/quote"
-    tail = "&interval=1d&filter=history&frequency=1d"
-    if start == "" or end == "":
-        s = ""
-    else:
-        p1 = date_to_int(start)
-        p2 = date_to_int(end)
-        s = "?period1=%s&period2=%s%s" % (p1, p2, tail)
-    url = '%s/%s.HK/history%s' % (base, stock, s)
-    return requests.get(url)
-
-def parse_table(res):
-    soup = BeautifulSoup(res.text)
-    table = soup.find('table')
-    heading = ['date', 'open', 'high', 'low', 'close', 'adj_close', 'volume']
-    sdata = []
-    for row in table.find_all("tr")[1:]:
-        if len(row) != 7: 
-            continue
-        sdata.append([d.text for d in row])
-    sdata = pd.DataFrame(sdata, columns = heading)
-    sdata['date'] = pd.to_datetime(sdata['date'], format = '%b %d, %Y')
-    for col in sdata.columns.values[1:]:
-        sdata[col] = pd.to_numeric(
-            sdata[col].str.replace(',', ''), errors = 'coerce')
-    return sdata
-
-def get_stock(stock, start = "", end = ""):
-    res = make_request(stock, start, end)
-    data = parse_table(res)
+def get_stock(stock, start, end):
+    base = 'https://query1.finance.yahoo.com/v7/finance/download/'
+    tail = 'interval=1d&events=history'
+    s = '%s.HK?' % (stock)
+    p1 = 'period1=%s&' % (date_to_int(start))
+    p2 = 'period2=%s&' % (date_to_int(end))
+    url = base + s + p1 + p2 + tail
+    data = pd.read_csv(url)
     return data
 
 class HKEX:
     def __init__(self):
         self.equities = get_equities()
         self.today = datetime.now().date()
+    
+    def getStock(self, stock, start = None, end = None):
+        if end is None:
+            end = self.today
+        if start is None:
+            start = '2000-01-01'
+        return get_stock(stock, start, end)
