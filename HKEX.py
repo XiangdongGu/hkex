@@ -32,7 +32,9 @@ def get_stock(stock, start, end):
     p1 = 'period1=%s&' % (date_to_int(start))
     p2 = 'period2=%s&' % (date_to_int(end))
     url = base + s + p1 + p2 + tail
-    data = pd.read_csv(url)
+    data = pd.read_csv(url, parse_dates=[0])
+    data = data.rename(str.lower, axis = 'columns')
+    data = data.rename({'adj close': 'adj_close'}, axis = 'columns')
     return data
 
 class HKEX:
