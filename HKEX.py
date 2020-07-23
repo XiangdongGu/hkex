@@ -1,8 +1,6 @@
-import requests
 import pandas as pd
 import numpy as np
 from datetime import datetime
-from bs4 import BeautifulSoup
 
 def get_equities():
     url = ("https://www.hkex.com.hk/eng/services/trading/" + 
